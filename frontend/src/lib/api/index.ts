@@ -1,5 +1,6 @@
 enum Method {
-    POST = "POST"
+    POST = "POST",
+    GET = "GET"
 }
 
 class Backend {
@@ -12,6 +13,11 @@ class Backend {
 
     create() {
         this.method = Method.POST
+        return this
+    }
+
+    read() {
+        this.method = Method.GET
         return this
     }
 
@@ -35,13 +41,13 @@ class Backend {
         return this
     }
 
-    async send<T, R>(body: T) {
+    async send<T, R>(body: T | null) {
         const res = await fetch(`http://${this.host}${this.path}`, {
             method: this.method, 
             headers: {
                 "Content-Type": "application/json"
             }, 
-            body: JSON.stringify(body)
+            body: body ? JSON.stringify(body): undefined
         }) 
 
         if (res.ok) {

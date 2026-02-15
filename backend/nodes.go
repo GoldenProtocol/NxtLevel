@@ -41,6 +41,30 @@ type Node struct {
 	version string
 }
 
+func (n *Node) readAll(ctx *gin.Context) {
+	db, found := ctx.Get("db")
+
+	if !found {
+		ctx.Status(http.StatusInternalServerError)
+		return
+	}
+
+	g := db.(*gorm.DB)
+
+	nodes := []*NodeModel{}
+
+	g.Find(&nodes)
+
+	companyNodes := ExtractNodeId(FilterNodesByType(nodes, "CompanyNode"))
+	gameNodes := ExtractNodeId(FilterNodesByType(nodes, "GameNode"))
+
+	companyRecords := make([]*CompanyModel, 0, len(companyNodes))
+	gameRecords := make([]*GameModel, 0, len(gameNodes))
+	g.Find(&companyRecords).Where("node_id IN ?", companyNodes)
+	g.Find(&gameRecords).Where("node_id IN ?", gameNodes)
+
+}
+
 func (n *Node) createHandler(ctx *gin.Context) {
 	db, found := ctx.Get("db")
 
@@ -68,6 +92,7 @@ func (n *Node) Router(router *gin.Engine) {
 	group := router.Group(n.version)
 	nodes := group.Group("/nodes")
 	nodes.POST("", n.createHandler)
+	nodes.GET("", n.readAll)
 }
 
 func NewNodeController(version string) *Node {

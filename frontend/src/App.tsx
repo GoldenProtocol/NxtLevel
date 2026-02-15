@@ -26,7 +26,6 @@ function DnDFlow() {
   const [nodes, _, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  console.log(edges)
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -64,8 +63,21 @@ function DnDFlow() {
   );
 }
 
-export default () => (
-  <ReactFlowProvider>
-    <DnDFlow />
-  </ReactFlowProvider>
-);
+export default () => {
+
+  useEffect(() => {
+    async function getNodes() {
+      await Backend.read().nodes().send(null)
+
+    }
+
+    getNodes()
+  }, [])
+
+
+  return (
+    <ReactFlowProvider>
+      <DnDFlow />
+    </ReactFlowProvider>
+  ); 
+};
